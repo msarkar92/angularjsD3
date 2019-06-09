@@ -32,8 +32,20 @@
 //     return colors[i%data.length];
 // });
 
-console.log("start");
+console.log("Start");
 var colors = ["red","green", "yellow", "blue", "black"];
+
+var margines = {top:10, right: 10, bottom:100, left:30};
+
+var width = 400 - margines.left - margines.right;
+var height = 400 - margines.top - margines.bottom;
+
+var svg = d3.select("#chart-area").append("svg")
+        .attr("width", width + margines.left + margines.right)
+        .attr("height", height + margines.top + margines.bottom);
+
+var g = svg.append("g")
+.attr("transform","translate(" + margines.left + "," + margines.top + ")");
 
 d3.json("data/buildings.json").then(function (data) {
     console.log(data);
@@ -42,36 +54,65 @@ d3.json("data/buildings.json").then(function (data) {
         d.height = +d.height;
     });
 
-    var scaling = d3.scaleLinear()
-    .domain([0,350])
-    .range([0,200]);
+    var x = d3.scaleBand()
+    .domain(data.map(function(d){ return d.name }))
+    .range([0,width])
+    .paddingInner(0.3)
+    .paddingOuter(0.1);
 
-    var svg = d3.select("#chart-area").append("svg")
-        .attr("width", 300)
-        .attr("height", 200);
+    var y = d3.scaleLinear()
+    .domain([0,d3.max(data, function(d){ 
+        return d.height})])    // [min,max] value in your data
+    .range([0,height]);   // [min,max] viewport pixels towards y axis
+
     
-        var circles = svg.selectAll("line").data(data);
 
-        circles.enter()
-        .append("line")
-        .attr("x1",function(d,i){
-            //console.log(d.height);
-            return (i+1)*30;
-        })
-        .attr("y1",function(d,i){
-            return 0;
-        })
-        .attr("x2",function(d,i){
-            return (i+1)*30;
-        })
-        .attr("y2",function(d,i){
-            console.log("Y=",scaling(d.height));
-            return scaling(d.height);
-        })
-        .attr("stroke", function(d,i){
-            return colors[i%5];
-        })
-        .attr("stroke-width","20");
-}).catch(function(data){
+    // var y = d3.scaleLog()
+    // .domain([1,750])    // [min,max] value in your data
+    // .range([0,200])   // [min,max] viewport pixels
+    // .base(1);
+
+    var xAxisCall = d3.axisBottom(x);
+    g.append("g")
+    .attr("class","x axis")
+    .attr("transform","translate(0," + height + ")")
+    .call(xAxisCall)
+    .selectAll("text")
+        .attr("y","10")
+        .attr("x","-5")
+        .attr("text-anchor","end")
+        .attr("transform","rotate(-40)");
+
+    var yAxisCall = d3.axisLeft(y);
+    g.append("g")
+    .attr("class","y-axis")
+    .call(yAxisCall);
+
+    var lines = g.selectAll("line")
+                .data(data);
+    lines.enter()
+    .append("line")
+    .attr("x1",function(d,i){
+        console.log(x.bandwidth());
+        return x(d.name);//(i+1)*30;
+    })
+    .attr("y1",function(d,i){
+        return 0;
+    })
+    .attr("x2",function(d,i){
+        return x(d.name);//(i+1)*30;
+    })
+    .attr("y2",function(d,i){
+        //console.log("Y=",y(d.height));
+        return y(d.height);
+    })
+    .attr("stroke", function(d,i){
+        return colors[i%5];
+    })
+    .attr("stroke-width",x.bandwidt);
+
+    
+})
+.catch(function(data){
     console.log("Error!!!");
 });
