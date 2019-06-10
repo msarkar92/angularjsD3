@@ -57,13 +57,13 @@ d3.json("data/buildings.json").then(function (data) {
     var x = d3.scaleBand()
     .domain(data.map(function(d){ return d.name }))
     .range([0,width])
-    .paddingInner(0.3)
-    .paddingOuter(0.1);
+    .paddingInner(0.2)
+    .paddingOuter(0.2);
 
     var y = d3.scaleLinear()
     .domain([0,d3.max(data, function(d){ 
         return d.height})])    // [min,max] value in your data
-    .range([0,height]);   // [min,max] viewport pixels towards y axis
+    .range([height,0]);   // [min,max] viewport pixels towards y axis
 
     
 
@@ -71,22 +71,6 @@ d3.json("data/buildings.json").then(function (data) {
     // .domain([1,750])    // [min,max] value in your data
     // .range([0,200])   // [min,max] viewport pixels
     // .base(1);
-
-    var xAxisCall = d3.axisBottom(x);
-    g.append("g")
-    .attr("class","x axis")
-    .attr("transform","translate(0," + height + ")")
-    .call(xAxisCall)
-    .selectAll("text")
-        .attr("y","10")
-        .attr("x","-5")
-        .attr("text-anchor","end")
-        .attr("transform","rotate(-40)");
-
-    var yAxisCall = d3.axisLeft(y);
-    g.append("g")
-    .attr("class","y-axis")
-    .call(yAxisCall);
 
     var lines = g.selectAll("line")
                 .data(data);
@@ -97,22 +81,64 @@ d3.json("data/buildings.json").then(function (data) {
         return x(d.name);//(i+1)*30;
     })
     .attr("y1",function(d,i){
-        return 0;
+        return y(d.height);
     })
     .attr("x2",function(d,i){
         return x(d.name);//(i+1)*30;
     })
     .attr("y2",function(d,i){
         //console.log("Y=",y(d.height));
-        return y(d.height);
+        return height;
     })
     .attr("stroke", function(d,i){
         return colors[i%5];
     })
-    .attr("stroke-width",x.bandwidt);
+    .attr("stroke-width",x.bandwidth());
+
+
+
+    var xAxisCall = d3.axisBottom(x);
+    g.append("g")
+    .attr("class","x axis")
+    .attr("transform","translate(0," + height + ")")
+    .call(xAxisCall)
+    .selectAll("text")
+        .attr("y","10")
+        .attr("x","-5")
+        .attr("text-anchor","end")
+        .attr("transform","rotate(-20)");
+
+    var yAxisCall = d3.axisLeft(y);
+    g.append("g")
+    .attr("class","y-axis")
+    .call(yAxisCall);
 
     
-})
-.catch(function(data){
-    console.log("Error!!!");
+  // text label for the x axis
+  g.append("text")             
+  .attr("transform",
+        "translate(" + (width/2) + " ," + 
+                       (height + margines.bottom - 10) + ")")
+  .style("text-anchor", "middle")
+  .text("Wrold's "+ data.length +" Tallest Towers");
+
+
+    var rect = g.selectAll("rect").data(data);
+    rect.enter()
+    .append("rect")
+    .attr("x",function(d,i){
+        //     console.log(x.bandwidth());
+        return x(d.name);
+    })
+    .attr("y",function(d,i){
+        return y(d.height);
+    })
+    .attr("width",x.bandwidth())
+    .attr("height",function(d){return height - y(d.height)})
+    .attr("fill","grey");
+
+    
 });
+// .catch(function(data){
+//     console.log("Error!!!");
+// });
