@@ -65,38 +65,6 @@ d3.json("data/buildings.json").then(function (data) {
         return d.height})])    // [min,max] value in your data
     .range([height,0]);   // [min,max] viewport pixels towards y axis
 
-    
-
-    // var y = d3.scaleLog()
-    // .domain([1,750])    // [min,max] value in your data
-    // .range([0,200])   // [min,max] viewport pixels
-    // .base(1);
-
-    var lines = g.selectAll("line")
-                .data(data);
-    lines.enter()
-    .append("line")
-    .attr("x1",function(d,i){
-        console.log(x.bandwidth());
-        return x(d.name);//(i+1)*30;
-    })
-    .attr("y1",function(d,i){
-        return y(d.height);
-    })
-    .attr("x2",function(d,i){
-        return x(d.name);//(i+1)*30;
-    })
-    .attr("y2",function(d,i){
-        //console.log("Y=",y(d.height));
-        return height;
-    })
-    .attr("stroke", function(d,i){
-        return colors[i%5];
-    })
-    .attr("stroke-width",x.bandwidth());
-
-
-
     var xAxisCall = d3.axisBottom(x);
     g.append("g")
     .attr("class","x axis")
@@ -136,7 +104,6 @@ d3.json("data/buildings.json").then(function (data) {
     .attr("width",x.bandwidth())
     .attr("height",function(d){return height - y(d.height)})
     .attr("fill","grey");
-
     
 });
 // .catch(function(data){
