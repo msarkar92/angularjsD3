@@ -33,79 +33,100 @@
 // });
 
 console.log("Start");
-var colors = ["red","green", "yellow", "blue", "black"];
+var colors = ["red", "green", "yellow", "blue", "black"];
 
-var margines = {top:10, right: 10, bottom:100, left:30};
+var margines = { top: 10, right: 10, bottom: 100, left: 50 };
 
 var width = 400 - margines.left - margines.right;
 var height = 400 - margines.top - margines.bottom;
 
 var svg = d3.select("#chart-area").append("svg")
-        .attr("width", width + margines.left + margines.right)
-        .attr("height", height + margines.top + margines.bottom);
+    .attr("width", width + margines.left + margines.right)
+    .attr("height", height + margines.top + margines.bottom);
 
 var g = svg.append("g")
-.attr("transform","translate(" + margines.left + "," + margines.top + ")");
+    .attr("transform", "translate(" + margines.left + "," + margines.top + ")");
+
+//x scale
+var x = d3.scaleBand()
+.paddingInner(0.2)
+.paddingOuter(0.2);
+
+//y scale
+var y = d3.scaleLinear();
+
+//x axis group
+var xAsisGroup = g.append("g")
+.attr("class", "x axis")
+.attr("transform", "translate(0," + height + ")");
+
+//y axis group
+var yAxisGroup = g.append("g")
+.attr("class", "y-axis");
 
 d3.json("data/buildings.json").then(function (data) {
     console.log(data);
 
-    data.forEach(function(d) {
+    data.forEach(function (d) {
         d.height = +d.height;
     });
 
-    var x = d3.scaleBand()
-    .domain(data.map(function(d){ return d.name }))
-    .range([0,width])
-    .paddingInner(0.2)
-    .paddingOuter(0.2);
+    //Interval function for updated view
+    d3.interval(function () {
+        update(data);
+    }, 500);
 
-    var y = d3.scaleLinear()
-    .domain([0,d3.max(data, function(d){ 
-        return d.height})])    // [min,max] value in your data
-    .range([height,0]);   // [min,max] viewport pixels towards y axis
+    //Run the visualization for the first time
+    update(data);
 
+    //Text label for the x axis
+    g.append("text")
+        .attr("transform",
+            "translate(" + (width / 2) + " ," +
+            (height + margines.bottom - 10) + ")")
+        .style("text-anchor", "middle")
+        .text("Wrold's " + data.length + " Tallest Towers");
+});
+
+function update(data) {
+    //x scale
+    x.domain(data.map(function (d) { return d.name }))
+        .range([0, width]);
+
+    //y scale
+    y.domain([0, d3.max(data, function (d) {
+            return d.height
+        })])    // [min,max] value in your data
+        .range([height, 0]);   // [min,max] viewport pixels towards y axis
+
+    //x asix
     var xAxisCall = d3.axisBottom(x);
-    g.append("g")
-    .attr("class","x axis")
-    .attr("transform","translate(0," + height + ")")
-    .call(xAxisCall)
-    .selectAll("text")
-        .attr("y","10")
-        .attr("x","-5")
-        .attr("text-anchor","end")
-        .attr("transform","rotate(-20)");
+    xAsisGroup.call(xAxisCall)
+        .selectAll("text")
+        .attr("y", "10")
+        .attr("x", "-5")
+        .attr("text-anchor", "end")
+        .attr("transform", "rotate(-20)");
 
-    var yAxisCall = d3.axisLeft(y);
-    g.append("g")
-    .attr("class","y-axis")
-    .call(yAxisCall);
-
-    
-  // text label for the x axis
-  g.append("text")             
-  .attr("transform",
-        "translate(" + (width/2) + " ," + 
-                       (height + margines.bottom - 10) + ")")
-  .style("text-anchor", "middle")
-  .text("Wrold's "+ data.length +" Tallest Towers");
-
+    //y axis
+    var yAxisCall = d3.axisLeft(y)
+        .tickFormat(function(d){
+            return d + "m";
+        });
+    yAxisGroup.call(yAxisCall);
 
     var rect = g.selectAll("rect").data(data);
     rect.enter()
-    .append("rect")
-    .attr("x",function(d,i){
-        //     console.log(x.bandwidth());
-        return x(d.name);
-    })
-    .attr("y",function(d,i){
-        return y(d.height);
-    })
-    .attr("width",x.bandwidth())
-    .attr("height",function(d){return height - y(d.height)})
-    .attr("fill","grey");
-    
-});
-// .catch(function(data){
-//     console.log("Error!!!");
-// });
+        .append("rect")
+        .attr("x", function (d, i) {
+            //console.log(x.bandwidth());
+            return x(d.name);
+        })
+        .attr("y", function (d, i) {
+            return y(d.height);
+        })
+        .attr("width", x.bandwidth())
+        .attr("height", function (d) { return height - y(d.height) })
+        .attr("fill", "grey");
+}
+
