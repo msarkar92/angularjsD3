@@ -4,34 +4,6 @@
 *    2.8 - Activity: Your first visualization!
 */
 
-// var data = [5,10,15,20,25,30,35];
-
-// var data = [{"name": "Burj Khalifa","height": "350"}];
-
-// var colors = ["red","green", "yellow", "blue", "black"];
-
-// var svg = d3.select("#chart-area").append("svg")
-//     .attr("width", 800)
-//     .attr("height", 400);
-
-// var circles = svg.selectAll("circle").data(data);
-
-// circles.enter()
-// .append("circle")
-// .attr("cx",function(d,i){
-//     console.log(d);
-//     return 200;
-// })
-// .attr("cy",function(d){
-//     return 200;
-// })
-// .attr("r",function(d){
-//     return d.height/10;
-// })
-// .attr("fill",function(d,i){
-//     return colors[i%data.length];
-// });
-
 console.log("Start");
 var colors = ["red", "green", "yellow", "blue", "black"];
 
@@ -43,6 +15,11 @@ var height = 400 - margines.top - margines.bottom;
 var svg = d3.select("#chart-area").append("svg")
     .attr("width", width + margines.left + margines.right)
     .attr("height", height + margines.top + margines.bottom);
+
+var tip = d3.tip().attr('class','d3-tip')
+            .html(function(d){
+                return d;
+            })
 
 var g = svg.append("g")
     .attr("transform", "translate(" + margines.left + "," + margines.top + ")");
@@ -96,7 +73,7 @@ function update(data) {
     //y scale
     y.domain([0, d3.max(data, function (d) {
             return d.height
-        })])    // [min,max] value in your data
+        })])                    // [min,max] value in your data
         .range([height, 0]);   // [min,max] viewport pixels towards y axis
 
     //x asix
